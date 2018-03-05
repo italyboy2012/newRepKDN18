@@ -23,4 +23,20 @@ public class Map {
         
     }
     
+    public void setSizeX(int sizeX) {
+        this.sizeX = sizeX;
+    }
+    
+    public void setSizeY(int sizeY) {
+        this.sizeY = sizeY;
+    }
+    
+    public int getSizeX() {
+        return this.sizeX;
+    }
+    
+    public int getSizeY() {
+        return this.sizeY;
+    }
+    
 }
