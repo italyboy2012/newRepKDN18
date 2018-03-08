@@ -24,5 +24,29 @@ public class Projectile {
         this.explosionRadius = explosionRadius;
         
     }
+    
+    public void setVelocity(int velocity) {
+        this.velocity = velocity;
+    }
+    
+    public void setDamage(int damage) {
+        this.damage = damage;
+    }
+    
+    public void setExplosionRadius(int explosionRadius) {
+        this.explosionRadius = explosionRadius;
+    }
+    
+    public int getVelocity() {
+        return this.velocity;
+    }
+    
+    public int getDamage() {
+        return this.damage;
+    }
+    
+    public int setExplosionRadius() {
+        return this.explosionRadius;
+    }
  
 }

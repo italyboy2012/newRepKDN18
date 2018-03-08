@@ -33,4 +33,52 @@ public class Player {
         
     }
     
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public void setLifepoints(int lifepoints) {
+        this.lifepoints = lifepoints;
+    }
+    
+    public void setPositionX(int positionX) {
+        this.positionX = positionX;
+    }
+    
+    public void setPositionY(int positionY) {
+        this.positionY = positionY;
+    }
+    
+    public void setMovementSpeed(int movementSpeed) {
+        this.movementSpeed = movementSpeed;
+    }
+    
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+    
+    public String getName() {
+        return this.name;
+    }
+    
+    public int getLifepoints() {
+        return this.lifepoints;
+    }
+    
+    public int getPositionX() {
+        return this.positionX;
+    }
+    
+    public int getPositionY() {
+        return this.positionY;
+    }
+    
+    public int getMovementSpeed() {
+        return this.movementSpeed;
+    }
+    
+    public boolean getActive() {
+        return this.active;
+    }
+    
 }
