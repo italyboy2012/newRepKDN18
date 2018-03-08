@@ -24,5 +24,5 @@ public class Projectile {
         this.explosionRadius = explosionRadius;
         
     }
-    
+ 
 }

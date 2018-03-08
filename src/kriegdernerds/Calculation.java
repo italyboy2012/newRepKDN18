@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package kriegdernerds;
-
+import java.lang.Math;
 /**
  *
  * @author Giuseppe
@@ -15,6 +15,9 @@ public class Calculation {
     private Projectile projectile;
     private Map map;
     private Player activePlayer;
+    
+    private int angle; //Attribut für den Schusswinkel
+   // private int velocity = projectile //Attribut wichtig für Streckfaktor, leicht runtergeregelt
     
     /**
      * Konstruktor
@@ -29,7 +32,6 @@ public class Calculation {
         this.projectile = projectile;
         this.map = map;
         this.activePlayer = activePlayer;
-        
     }
     
     public void startGame(Player player, Map map) {
@@ -41,9 +43,16 @@ public class Calculation {
     }
     
     public void calculatePlayerDamage(Player player, Projectile projectile) {
+        //Variablen für Funktion der Parabel
+        double a = Math.tan(angle); //Streckfaktor
         
+        double x; //Abhängige Variable für Funktion
     }
     
+    /**
+     * Die Methode berechnet die Flugkurve der Parabel, die entsteht
+     * wenn ein Projektil abgeschossen wird
+     */
     public void calculateParabola(Projectile projectile) {
         
     }
