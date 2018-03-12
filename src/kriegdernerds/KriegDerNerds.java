@@ -17,7 +17,7 @@ public class KriegDerNerds {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        System.out.println("Hallo Fadi");
+        System.out.println("Hallo Fadi - 12.03.2018");
     }
     
 }
