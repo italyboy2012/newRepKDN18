@@ -45,7 +45,7 @@ public class Projectile {
         return this.damage;
     }
     
-    public int setExplosionRadius() {
+    public int getExplosionRadius() {
         return this.explosionRadius;
     }
  
