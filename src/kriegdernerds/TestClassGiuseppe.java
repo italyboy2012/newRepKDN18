@@ -18,7 +18,9 @@ public class TestClassGiuseppe {
     private Calculation calculation = new Calculation(player, projectile, map, player);
     
     public void tests() {
-        System.out.println("HEY");
+        System.out.println("---------  TESTING MAP  ---------");
+        System.out.println("Size X: " + map.getSizeX());
+        System.out.println("Size Y: " + map.getSizeY());
     }
     
     
