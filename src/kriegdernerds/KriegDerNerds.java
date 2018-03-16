@@ -17,8 +17,8 @@ public class KriegDerNerds {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        TestClassGiuseppe t1 = new TestClassGiuseppe();
-        t1.tests();
+        TestJFrameGiuseppe t1 = new TestJFrameGiuseppe();
+        t1.setVisible(true);
     }
     
 }
