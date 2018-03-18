@@ -302,7 +302,7 @@ public class TestJFrameGiuseppe extends javax.swing.JFrame {
 
         textArea1.setBackground(new java.awt.Color(255, 255, 204));
         textArea1.setEditable(false);
-        textArea1.setForeground(new java.awt.Color(0, 0, 255));
+        textArea1.setForeground(new java.awt.Color(204, 0, 204));
 
         javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
         jPanel11.setLayout(jPanel11Layout);
