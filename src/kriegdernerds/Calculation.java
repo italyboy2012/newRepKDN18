@@ -52,6 +52,9 @@ public class Calculation {
         Player[] players = characterSelection.getAllPlayers();
         
         /*
+        Schleife setzt alle Attribute aller Spieler auf ihre Defaulteinstellungen.
+        Außerdem wird der erste Spieler als active gesetzt und die Position beider
+        Spieler festgesetzt.
         */
         for(int i=1; i<=players.length; i++){
             if(players.length==1){
