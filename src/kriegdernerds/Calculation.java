@@ -44,19 +44,34 @@ public class Calculation {
      * Default-Einstellungen.
      * @param player
      * @param map 
+     * @param projectile
      */
-    public void startGame(Player player, Map map) {
+    public void startGame(Player player, Map map, Projectile projectile) {
+        
         //Array mit allen Spielern
         Player[] players = characterSelection.getAllPlayers();
         
+        /*
+        */
         for(int i=1; i<=players.length; i++){
             if(players.length==1){
                 player.setActive(true);
-                player.setLifepoints(player.getLifepoints());
-                player.setMovementSpeed(player.getMovementSpeed());
                 player.setPositionX(10);
                 player.setPositionY(10);
+            } else {
+                player.setActive(false);
+                player.setPositionX(50);
+                player.setPositionY(10);
             }
+            player.setLifepoints(player.getLifepoints());
+            player.setMovementSpeed(player.getMovementSpeed());
+            
+            map.setSizeX(map.getSizeY());
+            map.setSizeY(map.getSizeY());
+
+            projectile.setDamage(projectile.getDamage());
+            projectile.setExplosionRadius(projectile.getExplosionRadius());
+            projectile.setVelocity(projectile.getVelocity());
         }
     }
     
