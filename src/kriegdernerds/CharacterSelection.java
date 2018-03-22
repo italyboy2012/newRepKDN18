@@ -7,9 +7,23 @@ package kriegdernerds;
 
 /**
  *
- * @author schueler
+ * @author Justin
  */
 public class CharacterSelection {
+    
+    //importieren der Referenzattribute
+    private Player player;
+    
+    //Array speichert die Player (anfangs noch 2)
+    private Player[] anzahlSpieler = new Player[2];
+    
+    /**
+     * getter für das Array der Spieler
+     * @return 
+     */
+    public Player[] getAllPlayers(){
+        return anzahlSpieler;
+    }
     
     public void next( ) {
         
