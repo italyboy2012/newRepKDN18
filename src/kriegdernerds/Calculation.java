@@ -5,16 +5,19 @@
  */
 package kriegdernerds;
 import java.lang.Math;
+
 /**
  *
- * @author Giuseppe
+ * @author Justin and Guiseppe
  */
 public class Calculation {
     
+    //importieren der Refenrenzattribute
     private Player player;
     private Projectile projectile;
     private Map map;
     private Player activePlayer;
+    private CharacterSelection characterSelection;
     
     private double velocity = projectile.getVelocity();
     private double angle;
@@ -35,8 +38,26 @@ public class Calculation {
         this.activePlayer = activePlayer;
     }
     
+    /**
+     * Die Methode soll festlegen wo der Spieler an welcher Stelle der Map
+     * aufgerufen wird und setzt die Spieler und Projektile auf ihre
+     * Default-Einstellungen.
+     * @param player
+     * @param map 
+     */
     public void startGame(Player player, Map map) {
+        //Array mit allen Spielern
+        Player[] players = characterSelection.getAllPlayers();
         
+        for(int i=1; i<=players.length; i++){
+            if(players.length==1){
+                player.setActive(true);
+                player.setLifepoints(player.getLifepoints());
+                player.setMovementSpeed(player.getMovementSpeed());
+                player.setPositionX(10);
+                player.setPositionY(10);
+            }
+        }
     }
     
     public void shoot(Player player, Projectile projectile, Map map) {
@@ -49,6 +70,7 @@ public class Calculation {
     /**
      * Die Methode berechnet die Flugkurve der Parabel, die entsteht
      * wenn ein Projektil abgeschossen wird
+     * @param projectile 
      */
     public void calculateParabola(Projectile projectile) {
                 
