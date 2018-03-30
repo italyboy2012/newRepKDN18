@@ -136,11 +136,22 @@ public class Calculation {
            double parabola = a*i*i + b*i + c;
            if(i<=extremePointX){
                 //hier muesste dann ein Punkt oder aehnliches gesetzt werden 
-           }           
+           }
        }
     }
     
-    public void calculatePlayerDamage(Player player, Projectile projectile) {
+    /**
+     * Die Methode sucht nach dem Spieler der gerade nicht aktiv ist und zieht
+     * ihm seine Lebenspunkte um dem Wert des Schadens des Projektils ab.
+     * Sie funktioniert zurzeit nur f\u00fcr zwei Spieler
+     * @param projectile Das ausgew\u00e4hlte Projektil
+     */
+    public void calculatePlayerDamage(Projectile projectile) {
+        for(int i=0;i<allPlayers.length;i++){
+            if(allPlayers[i] != activePlayer){
+                allPlayers[i].setLifepoints(allPlayers[i].getLifepoints() - projectile.getDamage());
+            }
+        }
     }
     
     /**
@@ -195,11 +206,30 @@ public class Calculation {
     
     /**
      * Die Methode setzt das Attribut active des Spielers, der dran ist auf true
-     * und setzt das des Spielers, der gerade eben dran gewesen war auf false.
-     * @param player Der Spieler der jetzt dran ist
+     * und setzt das des Spielers, der gerade eben dran gewesen ist auf false.
      */
-    private void setActivePlayer(Player player) {
-        
+    private void setActivePlayer() {
+        try{
+            //Schleife sucht jedes Element vom Array allPlayers ab
+            for(int i=0;i<allPlayers.length;i++){
+                //findet er darin den aktiven Player setzt er ihn "inactive"
+                if(allPlayers[i]==activePlayer){
+                    activePlayer.setActive(false);
+                    //ist der Player der letzte im Array, so wird der erste active
+                    if(i == allPlayers.length-1){
+                        activePlayer = allPlayers[0];
+                        activePlayer.setActive(true);
+                    //ansonsten wird der naechste im Array active gesetzt
+                    } else {
+                        activePlayer = allPlayers[i+1];
+                        activePlayer.setActive(true);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("In der Klasse Calculation gab es in der Methode setActivePlayer() eine " +e);
+        }
+
     }
     
     /**
