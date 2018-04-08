@@ -33,7 +33,7 @@ public class TestClassGiuseppe {
     }
     
     public void createCalculation() {
-        calculation = new Calculation(player, projectile, map, player);
+        calculation = new Calculation(player, player, projectile, map);
         
     }
     
