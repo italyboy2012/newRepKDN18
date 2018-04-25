@@ -80,21 +80,10 @@ public class SuperKoalio extends ApplicationAdapter {
 	@Override
 	public void create () {
 		// load the koala frames, split them, and assign them to Animations
-                //koalaTexture = new Texture("core/assets/data/maps/tiled/super-koalio/koalio.png");
-                //Texture(FileHandle ("core/assets/data/maps/tiled/super-koalio/koalio.png"));  
-		//TextureRegion[] regions = TextureRegion.split(koalaTexture, 18, 26)[0];
+                koalaTexture = new Texture("koalio.png");
+                //FileHandle = new FileHandle ("core/assets/data/maps/tiled/super-koalio/koalio.png")); 
                 TextureRegion[] regions = TextureRegion.split(koalaTexture, 18, 26)[0];
 
-                
-            //laedt den Koala auf das Spiel
-            try {
-                koalaTexture = new Texture("core/assets/data/maps/tiled/super-koalio/koalio.png");
-                FileHandler pic = new FileHandler("core/assets/data/maps/tiled/super-koalio/koalio.png");
-            } catch (IOException ex) {
-                Logger.getLogger(SuperKoalio.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SecurityException ex) {
-                Logger.getLogger(SuperKoalio.class.getName()).log(Level.SEVERE, null, ex);
-            }
 		stand = new Animation(0, regions[0]);
 		jump = new Animation(0, regions[1]);
 		walk = new Animation(0.15f, regions[2], regions[3], regions[4]);
@@ -107,7 +96,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		Koala.HEIGHT = 1 / 16f * regions[0].getRegionHeight();
 
 		// load the map, set the unit scale to 1/16 (1 unit == 16 pixels)
-		map = new TmxMapLoader().load("core/assets/data/maps/tiled/super-koalio/test_map_detailed.tmx");
+		map = new TmxMapLoader().load("flatmap2.tmx");
 		renderer = new OrthogonalTiledMapRenderer(map, 1 / 32f);
 
 		// create an orthographic camera, shows us 30x20 units of the world
@@ -280,6 +269,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		tiles.clear();
 		for (int y = startY; y <= endY; y++) {
 			for (int x = startX; x <= endX; x++) {
+                            System.out.println(startX + " " + startY + " " + " " + endX + " " + endY + " " + x + " " + y);
 				Cell cell = layer.getCell(x, y);
 				if (cell != null) {
 					Rectangle rect = rectPool.obtain();
