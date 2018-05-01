@@ -25,7 +25,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
+//import com.mygdx.game.SuperKoalio.Koala.State;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,34 +38,22 @@ import java.util.logging.Logger;
  * Shows simple platformer collision detection as well as on-the-fly map modifications through destructible blocks!
  * @author mzechner */
 public class SuperKoalio extends ApplicationAdapter {
-	/** The player character, has state and state time, */
-	static class Koala {
-		static float WIDTH;
-		static float HEIGHT;
-		static float MAX_VELOCITY = 10f;
-		static float JUMP_VELOCITY = 40f;
-		static float DAMPING = 0.87f;
-
-		enum State {
-			Standing, Walking, Jumping
-		}
-
-		final Vector2 position = new Vector2();
-		final Vector2 velocity = new Vector2();
-		State state = State.Walking;
-		float stateTime = 0;
-		boolean facesRight = true;
-		boolean grounded = false;
-	}
 
 	private TiledMap map;
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
-	private Texture koalaTexture;
-	private Animation<TextureRegion> stand;
+	
+	private Koala koala;
+        private Texture koalaTexture;
+        private Animation<TextureRegion> stand;
 	private Animation<TextureRegion> walk;
 	private Animation<TextureRegion> jump;
-	private Koala koala;
+        
+        private ArrayList<Projectile> projectileList = new ArrayList<Projectile>();
+        
+        private float koalaPositionWhenShootedWidth = 0;
+        private float koalaPositionWhenShootedHeight = 0;
+        
 	private Pool<Rectangle> rectPool = new Pool<Rectangle>() {
 		@Override
 		protected Rectangle newObject () {
@@ -82,19 +72,22 @@ public class SuperKoalio extends ApplicationAdapter {
 		// load the koala frames, split them, and assign them to Animations
                 koalaTexture = new Texture("koalio.png");
                 //FileHandle = new FileHandle ("core/assets/data/maps/tiled/super-koalio/koalio.png")); 
-                TextureRegion[] regions = TextureRegion.split(koalaTexture, 18, 26)[0];
+                TextureRegion[] regionsKoala = TextureRegion.split(koalaTexture, 18, 26)[0];
 
-		stand = new Animation(0, regions[0]);
-		jump = new Animation(0, regions[1]);
-		walk = new Animation(0.15f, regions[2], regions[3], regions[4]);
+		stand = new Animation(0, regionsKoala[0]);
+		jump = new Animation(0, regionsKoala[1]);
+		walk = new Animation(0.15f, regionsKoala[2], regionsKoala[3], regionsKoala[4]);
 		walk.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
 
 		// figure out the width and height of the koala for collision
 		// detection and rendering by converting a koala frames pixel
 		// size into world units (1 unit == 16 pixels)
-		Koala.WIDTH = 1 / 16f * regions[0].getRegionWidth();
-		Koala.HEIGHT = 1 / 16f * regions[0].getRegionHeight();
+		Koala.WIDTH = 1 / 16f * regionsKoala[0].getRegionWidth();
+		Koala.HEIGHT = 1 / 16f * regionsKoala[0].getRegionHeight();
 
+                //Set the Player-position for the projectile
+                koalaPositionWhenShootedWidth = Koala.WIDTH;
+                koalaPositionWhenShootedHeight = Koala.HEIGHT;
 		// load the map, set the unit scale to 1/16 (1 unit == 16 pixels)
 		map = new TmxMapLoader().load("flatmap2.tmx");
 		renderer = new OrthogonalTiledMapRenderer(map, 1 / 32f);
@@ -125,6 +118,7 @@ public class SuperKoalio extends ApplicationAdapter {
 
 		// let the camera follow the koala, x-axis only
 		camera.position.x = koala.position.x;
+                camera.position.y = koala.position.y + 4;
 		camera.update();
 
 		// set the TiledMapRenderer view based on what the
@@ -134,6 +128,11 @@ public class SuperKoalio extends ApplicationAdapter {
 
 		// render the koala
 		renderKoala(deltaTime);
+                
+                // update the projectile (process input, collision detection, position update)
+		updateProjectile(deltaTime);
+                // render the projectile if it exists
+                renderProjectile(deltaTime);
 
 		// render debug rectangles
 		if (debug) renderDebug();
@@ -148,7 +147,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		koala.stateTime += deltaTime;
 
 		// check input and apply to velocity & state
-		if ((Gdx.input.isKeyPressed(Keys.SPACE) || isTouched(0.5f, 1)) && koala.grounded) {
+		if ((Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W) || isTouched(0.5f, 1)) && koala.grounded) {
 			koala.velocity.y += Koala.JUMP_VELOCITY;
 			koala.state = Koala.State.Jumping;
 			koala.grounded = false;
@@ -250,7 +249,90 @@ public class SuperKoalio extends ApplicationAdapter {
 		// walk infinitely once a key was pressed
 		koala.velocity.x *= Koala.DAMPING;
 	}
+        
+        private void updateProjectile(float deltaTime) {
+            
+            if (deltaTime == 0) {
+                return;
+            }
 
+            if (deltaTime > 0.1f) deltaTime = 0.1f;
+            
+
+            if (Gdx.input.isKeyPressed(Keys.SPACE)) {
+                Projectile projectile = new Projectile();
+                
+                Texture projectileTexture;
+                Animation<TextureRegion> one;
+                Animation<TextureRegion> two;
+                Animation<TextureRegion> three;
+                
+                projectile.stateTime += deltaTime;
+                
+                projectileTexture = new Texture("koalio.png");
+                TextureRegion[] regionsProjectile = TextureRegion.split(projectileTexture, 18, 26)[0];
+
+		one = new Animation(0, regionsProjectile[0]);
+		two = new Animation(0, regionsProjectile[1]);
+		three = new Animation(0.15f, regionsProjectile[2], regionsProjectile[3], regionsProjectile[4]);
+		//walk.setPlayMode(Animation.PlayMode.LOOP_PINGPONG);
+
+		// figure out the width and height of the koala for collision
+		// detection and rendering by converting a koala frames pixel
+		// size into world units (1 unit == 16 pixels)
+		Projectile.WIDTH = 1 / 16f * regionsProjectile[0].getRegionWidth();
+		Projectile.HEIGHT = 1 / 16f * regionsProjectile[0].getRegionHeight();
+                
+                projectile.positionx = koala.position.x;
+                
+                projectile.positiony = koala.position.y;
+                
+                if (koala.facesRight) {
+                    projectile.facing = "right";
+                } else {
+                    projectile.facing = "left";
+                }
+                
+                //projectile.position.set(30, 20);
+                projectileList.add(projectile);
+                System.out.println(projectileList.size() + "Projektile");
+                
+                
+            }
+            
+        }
+        
+        private void renderProjectile(float deltaTime) {
+            Projectile currentProjectile = null;
+            try {
+                for(int i = 0; i < projectileList.size(); i++) {
+                    currentProjectile = null;
+                    currentProjectile = projectileList.get(i);
+
+                    TextureRegion frame = null;
+                    Batch batch = renderer.getBatch();
+                    frame = stand.getKeyFrame(currentProjectile.stateTime);
+                    batch.begin();
+                    //batch.draw(frame, projectile.position.x, projectile.position.y, Projectile.WIDTH, Projectile.HEIGHT);
+
+                    if(currentProjectile.facing == "right") {
+                        currentProjectile.positionx = currentProjectile.positionx + Projectile.MAX_VELOCITY;
+                        batch.draw(frame, currentProjectile.positionx, currentProjectile.positiony, Projectile.WIDTH, Projectile.HEIGHT);
+                    } else {
+                        currentProjectile.positionx = currentProjectile.positionx - Projectile.MAX_VELOCITY;
+                        batch.draw(frame, currentProjectile.positionx + currentProjectile.WIDTH, currentProjectile.positiony, -Projectile.WIDTH, Projectile.HEIGHT);
+                    }
+
+                    batch.end();
+                }
+            
+            } catch(Exception e) {
+                System.out.println("FEHLER_______________");
+                
+            }
+            
+        }
+        
 	private boolean isTouched (float startX, float endX) {
 		// Check for touch inputs between startX and endX
 		// startX/endX are given between 0 (left edge of the screen) and 1 (right edge of the screen)
@@ -314,7 +396,7 @@ public class SuperKoalio extends ApplicationAdapter {
 
 		debugRenderer.setColor(Color.RED);
 		debugRenderer.rect(koala.position.x, koala.position.y, Koala.WIDTH, Koala.HEIGHT);
-
+                
 		debugRenderer.setColor(Color.YELLOW);
 		TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("main");
 		for (int y = 0; y <= layer.getHeight(); y++) {
