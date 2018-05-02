@@ -52,6 +52,12 @@ public class SuperKoalio extends ApplicationAdapter {
         
         private ArrayList<Projectile> projectileList = new ArrayList<Projectile>();
         
+        private boolean soundOnOff = false;
+        private Sound backgroundMusic;
+        private Sound jumpSound;
+        private Sound shootSound;
+        private long idBackgroundMusic;
+        
         private float koalaPositionWhenShootedWidth = 0;
         private float koalaPositionWhenShootedHeight = 0;
         
@@ -101,6 +107,13 @@ public class SuperKoalio extends ApplicationAdapter {
 		// create the Koala we want to move around the world
 		koala = new Koala();
 		koala.position.set(20, 20);
+                
+                shootSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
+                backgroundMusic = Gdx.audio.newSound(Gdx.files.internal("backgroundMusic.mp3"));
+                jumpSound = Gdx.audio.newSound(Gdx.files.internal("jumpSound.mp3"));
+                
+                Options optionWindow = new Options(this);
+                optionWindow.setVisible(true);
 
 		debugRenderer = new ShapeRenderer();
 	}
@@ -152,6 +165,7 @@ public class SuperKoalio extends ApplicationAdapter {
 			koala.velocity.y += Koala.JUMP_VELOCITY;
 			koala.state = Koala.State.Jumping;
 			koala.grounded = false;
+                        playJumpSound();
 		}
 
 		if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A) || isTouched(0, 0.25f)) {
@@ -288,7 +302,7 @@ public class SuperKoalio extends ApplicationAdapter {
                 
                 projectile.positiony = koala.position.y;
                 
-                playSound();
+                playShootSound();
                 
                 if (koala.facesRight) {
                     projectile.facing = "right";
@@ -336,11 +350,33 @@ public class SuperKoalio extends ApplicationAdapter {
             
         }
         
-        private void playSound() {
-            Sound sound = Gdx.audio.newSound(Gdx.files.internal("m2.mp3"));
-            long idSound = sound.play(1f);
-            //sound.stop(idSound);
+        private void playJumpSound() {
+            if(soundOnOff) {
+                jumpSound.play(0.5f);
+                
+            }
             
+        }
+        private void playShootSound() {
+            if(soundOnOff) {
+                long idShootSound = shootSound.play(0.5f);
+                //sound.stop(idSound);
+            }
+            
+        }
+        
+        public void setSoundOnOff(boolean soundOnOff) {
+            this.soundOnOff = soundOnOff;
+            
+        }
+        
+        public void playBackgroundMusic() {
+                idBackgroundMusic = backgroundMusic.play(0.5f);
+            
+        }
+        
+        public void stopBackgroundMusic() {
+                backgroundMusic.stop(idBackgroundMusic);
             
         }
         
