@@ -5,6 +5,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -287,6 +288,8 @@ public class SuperKoalio extends ApplicationAdapter {
                 
                 projectile.positiony = koala.position.y;
                 
+                playSound();
+                
                 if (koala.facesRight) {
                     projectile.facing = "right";
                 } else {
@@ -330,6 +333,14 @@ public class SuperKoalio extends ApplicationAdapter {
                 System.out.println("FEHLER_______________");
                 
             }
+            
+        }
+        
+        private void playSound() {
+            Sound sound = Gdx.audio.newSound(Gdx.files.internal("m2.mp3"));
+            long idSound = sound.play(1f);
+            //sound.stop(idSound);
+            
             
         }
         
