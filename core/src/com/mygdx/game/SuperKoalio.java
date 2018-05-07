@@ -29,6 +29,7 @@ import com.badlogic.gdx.utils.Pool;
 //import com.mygdx.game.SuperKoalio.Koala.State;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,16 +44,20 @@ public class SuperKoalio extends ApplicationAdapter {
 	private TiledMap map;
 	private OrthogonalTiledMapRenderer renderer;
 	private OrthographicCamera camera;
-	
+        
 	private Koala koala;
         private Texture koalaTexture;
         private Animation<TextureRegion> stand;
 	private Animation<TextureRegion> walk;
 	private Animation<TextureRegion> jump;
         
+        private Koala koala2;
+        
+        private Koala activeKoala = null;
+        
         private ArrayList<Projectile> projectileList = new ArrayList<Projectile>();
         
-        private boolean soundOnOff = false;
+        private boolean soundOnOff = true;
         private Sound backgroundMusic;
         private Sound jumpSound;
         private Sound shootSound;
@@ -77,7 +82,7 @@ public class SuperKoalio extends ApplicationAdapter {
 	@Override
 	public void create () {
 		// load the koala frames, split them, and assign them to Animations
-                koalaTexture = new Texture("koalio.png");
+                koalaTexture = new Texture(activeKoala.texture);
                 //FileHandle = new FileHandle ("core/assets/data/maps/tiled/super-koalio/koalio.png")); 
                 TextureRegion[] regionsKoala = TextureRegion.split(koalaTexture, 18, 26)[0];
 
@@ -108,6 +113,13 @@ public class SuperKoalio extends ApplicationAdapter {
 		koala = new Koala();
 		koala.position.set(20, 20);
                 
+                koala2 = new Koala();
+		koala2.position.set(18, 7);
+                
+                koala2.state = Koala.State.Standing;
+                
+                activeKoala = koala;
+                
                 shootSound = Gdx.audio.newSound(Gdx.files.internal("shootSound.mp3"));
                 backgroundMusic = Gdx.audio.newSound(Gdx.files.internal("backgroundMusic.mp3"));
                 jumpSound = Gdx.audio.newSound(Gdx.files.internal("jumpSound.mp3"));
@@ -116,6 +128,8 @@ public class SuperKoalio extends ApplicationAdapter {
                 optionWindow.setVisible(true);
 
 		debugRenderer = new ShapeRenderer();
+                
+                playBackgroundMusic();
 	}
 
 	@Override
@@ -131,8 +145,8 @@ public class SuperKoalio extends ApplicationAdapter {
 		updateKoala(deltaTime);
 
 		// let the camera follow the koala, x-axis only
-		camera.position.x = koala.position.x;
-                camera.position.y = koala.position.y + 4;
+		camera.position.x = activeKoala.position.x;
+                camera.position.y = activeKoala.position.y + 4;
 		camera.update();
 
 		// set the TiledMapRenderer view based on what the
@@ -141,13 +155,20 @@ public class SuperKoalio extends ApplicationAdapter {
 		renderer.render();
 
 		// render the koala
-		renderKoala(deltaTime);
+		renderKoalas(deltaTime);
                 
                 // update the projectile (process input, collision detection, position update)
 		updateProjectile(deltaTime);
                 // render the projectile if it exists
                 renderProjectile(deltaTime);
-
+                
+                try{
+                    checkForActivePlayer();
+                    
+                } catch(Exception e) {
+                    System.out.println("Fehler beim Ausführen von: checkForActivePlayer()");
+                }
+                
 		// render debug rectangles
 		if (debug) renderDebug();
 	}
@@ -158,98 +179,98 @@ public class SuperKoalio extends ApplicationAdapter {
 		if (deltaTime > 0.1f)
 			deltaTime = 0.1f;
 
-		koala.stateTime += deltaTime;
+		activeKoala.stateTime += deltaTime;
 
 		// check input and apply to velocity & state
-		if ((Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W) || isTouched(0.5f, 1)) && koala.grounded) {
-			koala.velocity.y += Koala.JUMP_VELOCITY;
-			koala.state = Koala.State.Jumping;
-			koala.grounded = false;
+		if ((Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W) || isTouched(0.5f, 1)) && activeKoala.grounded) {
+			activeKoala.velocity.y += activeKoala.JUMP_VELOCITY;
+			activeKoala.state = Koala.State.Jumping;
+			activeKoala.grounded = false;
                         playJumpSound();
 		}
 
 		if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A) || isTouched(0, 0.25f)) {
-			koala.velocity.x = -Koala.MAX_VELOCITY;
-			if (koala.grounded) koala.state = Koala.State.Walking;
-			koala.facesRight = false;
+			activeKoala.velocity.x = -Koala.MAX_VELOCITY;
+			if (activeKoala.grounded) activeKoala.state = Koala.State.Walking;
+			activeKoala.facesRight = false;
 		}
 
 		if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D) || isTouched(0.25f, 0.5f)) {
-			koala.velocity.x = Koala.MAX_VELOCITY;
-			if (koala.grounded) koala.state = Koala.State.Walking;
-			koala.facesRight = true;
+			activeKoala.velocity.x = Koala.MAX_VELOCITY;
+			if (activeKoala.grounded) activeKoala.state = Koala.State.Walking;
+			activeKoala.facesRight = true;
 		}
 
 		if (Gdx.input.isKeyJustPressed(Keys.B))
 			debug = !debug;
 
 		// apply gravity if we are falling
-		koala.velocity.add(0, GRAVITY);
+		activeKoala.velocity.add(0, GRAVITY);
 
 		// clamp the velocity to the maximum, x-axis only
-		koala.velocity.x = MathUtils.clamp(koala.velocity.x,
+		activeKoala.velocity.x = MathUtils.clamp(activeKoala.velocity.x,
 				-Koala.MAX_VELOCITY, Koala.MAX_VELOCITY);
 
 		// If the velocity is < 1, set it to 0 and set state to Standing
-		if (Math.abs(koala.velocity.x) < 1) {
-			koala.velocity.x = 0;
-			if (koala.grounded) koala.state = Koala.State.Standing;
+		if (Math.abs(activeKoala.velocity.x) < 1) {
+			activeKoala.velocity.x = 0;
+			if (activeKoala.grounded) activeKoala.state = Koala.State.Standing;
 		}
 
 		// multiply by delta time so we know how far we go
 		// in this frame
-		koala.velocity.scl(deltaTime);
+		activeKoala.velocity.scl(deltaTime);
 
 		// perform collision detection & response, on each axis, separately
 		// if the koala is moving right, check the tiles to the right of it's
 		// right bounding box edge, otherwise check the ones to the left
 		Rectangle koalaRect = rectPool.obtain();
-		koalaRect.set(koala.position.x, koala.position.y, Koala.WIDTH, Koala.HEIGHT);
+		koalaRect.set(activeKoala.position.x, activeKoala.position.y, Koala.WIDTH, Koala.HEIGHT);
 		int startX, startY, endX, endY;
-		if (koala.velocity.x > 0) {
-			startX = endX = (int)(koala.position.x + Koala.WIDTH + koala.velocity.x);
+		if (activeKoala.velocity.x > 0) {
+			startX = endX = (int)(activeKoala.position.x + Koala.WIDTH + activeKoala.velocity.x);
 		} else {
-			startX = endX = (int)(koala.position.x + koala.velocity.x);
+			startX = endX = (int)(activeKoala.position.x + activeKoala.velocity.x);
 		}
-		startY = (int)(koala.position.y);
-		endY = (int)(koala.position.y + Koala.HEIGHT);
+		startY = (int)(activeKoala.position.y);
+		endY = (int)(activeKoala.position.y + Koala.HEIGHT);
 		getTiles(startX, startY, endX, endY, tiles);
-		koalaRect.x += koala.velocity.x;
+		koalaRect.x += activeKoala.velocity.x;
 		for (Rectangle tile : tiles) {
 			if (koalaRect.overlaps(tile)) {
-				koala.velocity.x = 0;
+				activeKoala.velocity.x = 0;
 				break;
 			}
 		}
-		koalaRect.x = koala.position.x;
+		koalaRect.x = activeKoala.position.x;
 
 		// if the koala is moving upwards, check the tiles to the top of its
 		// top bounding box edge, otherwise check the ones to the bottom
-		if (koala.velocity.y > 0) {
-			startY = endY = (int)(koala.position.y + Koala.HEIGHT + koala.velocity.y);
+		if (activeKoala.velocity.y > 0) {
+			startY = endY = (int)(activeKoala.position.y + Koala.HEIGHT + activeKoala.velocity.y);
 		} else {
-			startY = endY = (int)(koala.position.y + koala.velocity.y);
+			startY = endY = (int)(activeKoala.position.y + activeKoala.velocity.y);
 		}
-		startX = (int)(koala.position.x);
-		endX = (int)(koala.position.x + Koala.WIDTH);
+		startX = (int)(activeKoala.position.x);
+		endX = (int)(activeKoala.position.x + Koala.WIDTH);
 		getTiles(startX, startY, endX, endY, tiles);
-		koalaRect.y += koala.velocity.y;
+		koalaRect.y += activeKoala.velocity.y;
 		for (Rectangle tile : tiles) {
 			if (koalaRect.overlaps(tile)) {
 				// we actually reset the koala y-position here
 				// so it is just below/above the tile we collided with
 				// this removes bouncing :)
-				if (koala.velocity.y > 0) {
-					koala.position.y = tile.y - Koala.HEIGHT;
+				if (activeKoala.velocity.y > 0) {
+					activeKoala.position.y = tile.y - Koala.HEIGHT;
 					// we hit a block jumping upwards, let's destroy it!
 					TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("main");
 					layer.setCell((int)tile.x, (int)tile.y, null);
 				} else {
-					koala.position.y = tile.y + tile.height;
+					activeKoala.position.y = tile.y + tile.height;
 					// if we hit the ground, mark us as grounded so we can jump
-					koala.grounded = true;
+					activeKoala.grounded = true;
 				}
-				koala.velocity.y = 0;
+				activeKoala.velocity.y = 0;
 				break;
 			}
 		}
@@ -257,12 +278,12 @@ public class SuperKoalio extends ApplicationAdapter {
 
 		// unscale the velocity by the inverse delta time and set
 		// the latest position
-		koala.position.add(koala.velocity);
-		koala.velocity.scl(1 / deltaTime);
+		activeKoala.position.add(activeKoala.velocity);
+		activeKoala.velocity.scl(1 / deltaTime);
 
 		// Apply damping to the velocity on the x-axis so we don't
 		// walk infinitely once a key was pressed
-		koala.velocity.x *= Koala.DAMPING;
+		activeKoala.velocity.x *= Koala.DAMPING;
 	}
         
         private void updateProjectile(float deltaTime) {
@@ -273,8 +294,11 @@ public class SuperKoalio extends ApplicationAdapter {
 
             if (deltaTime > 0.1f) deltaTime = 0.1f;
             
-
-            if (Gdx.input.isKeyPressed(Keys.SPACE)) {
+            
+            
+            if (Gdx.input.isKeyPressed(Keys.SPACE) && activeKoala.shootActive) {
+                activeKoala.shootActive = false;
+                
                 Projectile projectile = new Projectile();
                 
                 Texture projectileTexture;
@@ -298,13 +322,13 @@ public class SuperKoalio extends ApplicationAdapter {
 		Projectile.WIDTH = 1 / 16f * regionsProjectile[0].getRegionWidth();
 		Projectile.HEIGHT = 1 / 16f * regionsProjectile[0].getRegionHeight();
                 
-                projectile.positionx = koala.position.x;
+                projectile.positionx = activeKoala.position.x;
                 
-                projectile.positiony = koala.position.y;
+                projectile.positiony = activeKoala.position.y;
                 
                 playShootSound();
                 
-                if (koala.facesRight) {
+                if (activeKoala.facesRight) {
                     projectile.facing = "right";
                 } else {
                     projectile.facing = "left";
@@ -316,6 +340,7 @@ public class SuperKoalio extends ApplicationAdapter {
                 
                 
             }
+            
             
         }
         
@@ -345,6 +370,44 @@ public class SuperKoalio extends ApplicationAdapter {
             
             } catch(Exception e) {
                 System.out.println("FEHLER_______________");
+                
+            }
+            
+        }
+        
+        private void checkForActivePlayer() throws InterruptedException {
+            if(!activeKoala.shootActive && activeKoala == koala) {
+                
+                activeKoala = null;
+                activeKoala = koala2;
+                koala.shootActive = true;
+                //TimeUnit.SECONDS.sleep(1);
+                //changeCameraPositionToActiveKoalaOnASmoothWay();
+                Thread.sleep(150);
+            } else if(!activeKoala.shootActive && activeKoala == koala2){
+               
+                activeKoala = null;
+                activeKoala = koala;
+                koala2.shootActive = true;
+                //TimeUnit.SECONDS.sleep(1);
+                //changeCameraPositionToActiveKoalaOnASmoothWay();
+                Thread.sleep(150);
+                
+            }
+            
+        }
+        
+        private void changeCameraPositionToActiveKoalaOnASmoothWay(String jdhued, boolean chrisAlive) {
+            if(camera.position.x != activeKoala.position.x) {
+                
+                if(camera.position.x > activeKoala.position.x) {
+                    camera.position.x = camera.position.x + Koala.MAX_VELOCITY;
+                    
+                } else {
+                    camera.position.x = camera.position.x + Koala.MAX_VELOCITY;
+                    
+                }
+		camera.update();
                 
             }
             
@@ -409,7 +472,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		}
 	}
 
-	private void renderKoala (float deltaTime) {
+	private void renderKoalas (float deltaTime) {
 		// based on the koala state, get the animation frame
 		TextureRegion frame = null;
 		switch (koala.state) {
@@ -434,6 +497,29 @@ public class SuperKoalio extends ApplicationAdapter {
 		} else {
 			batch.draw(frame, koala.position.x + Koala.WIDTH, koala.position.y, -Koala.WIDTH, Koala.HEIGHT);
 		}
+		
+                
+                switch (koala2.state) {
+			case Standing:
+				frame = stand.getKeyFrame(koala2.stateTime);
+				break;
+			case Walking:
+				frame = walk.getKeyFrame(koala2.stateTime);
+				break;
+			case Jumping:
+				frame = jump.getKeyFrame(koala2.stateTime);
+				break;
+		}
+
+		// draw the koala, depending on the current velocity
+		// on the x-axis, draw the koala facing either right
+		// or left
+		
+		if (koala2.facesRight) {
+			batch.draw(frame, koala2.position.x, koala2.position.y, Koala.WIDTH, Koala.HEIGHT);
+		} else {
+			batch.draw(frame, koala2.position.x + Koala.WIDTH, koala2.position.y, -Koala.WIDTH, Koala.HEIGHT);
+		}
 		batch.end();
 	}
 
@@ -442,7 +528,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		debugRenderer.begin(ShapeType.Line);
 
 		debugRenderer.setColor(Color.RED);
-		debugRenderer.rect(koala.position.x, koala.position.y, Koala.WIDTH, Koala.HEIGHT);
+		debugRenderer.rect(activeKoala.position.x, activeKoala.position.y, Koala.WIDTH, Koala.HEIGHT);
                 
 		debugRenderer.setColor(Color.YELLOW);
 		TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("main");

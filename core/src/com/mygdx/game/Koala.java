@@ -29,5 +29,9 @@ public class Koala {
 		float stateTime = 0;
 		boolean facesRight = true;
 		boolean grounded = false;
+                
+                static boolean shootActive = true;
+                
+                static String texture = "koalio.png";
     
 }
