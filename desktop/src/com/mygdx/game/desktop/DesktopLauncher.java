@@ -5,8 +5,16 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.mygdx.game.SuperKoalio;
 
 public class DesktopLauncher {
+    
 	public static void main (String[] arg) {
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		new LwjglApplication(new SuperKoalio(), config);
-	}
+            StartMenu sm = new StartMenu(this);
+            
+            
+        }
+    
+    public void startGame() {
+        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+	new LwjglApplication(new SuperKoalio(), config);
+        
+    }
 }
