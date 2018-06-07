@@ -6,15 +6,18 @@ import com.mygdx.game.SuperKoalio;
 
 public class DesktopLauncher {
     
-	public static void main (String[] arg) {
-            StartMenu sm = new StartMenu(this);
-            
-            
-        }
+    
+    public static void main (String[] arg) {
+        DesktopLauncher dlNeu = new DesktopLauncher();
+        StartMenu sm = new StartMenu(dlNeu);
+        sm.setVisible(true);
+        //LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+	//new LwjglApplication(new SuperKoalio(), config);
+    }
     
     public void startGame() {
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 	new LwjglApplication(new SuperKoalio(), config);
-        
     }
+    
 }
