@@ -101,7 +101,7 @@ public class SuperKoalio extends ApplicationAdapter {
                 koalaPositionWhenShootedWidth = Koala.WIDTH;
                 koalaPositionWhenShootedHeight = Koala.HEIGHT;
 		// load the map, set the unit scale to 1/16 (1 unit == 16 pixels)
-		map = new TmxMapLoader().load("flatmap2.tmx");
+		map = new TmxMapLoader().load("Final.tmx");
 		renderer = new OrthogonalTiledMapRenderer(map, 1 / 32f);
 
 		// create an orthographic camera, shows us 30x20 units of the world
@@ -270,6 +270,20 @@ public class SuperKoalio extends ApplicationAdapter {
 					// if we hit the ground, mark us as grounded so we can jump
 					activeKoala.grounded = true;
 				}
+                                // Kollision Spieler mit Wasser beim Fallen (= velocoty y ist negativ)
+                                if (koala.velocity.y < 0) {
+                                    koala.position.y = tile.y + tile.height;
+                                    // if we hit destructive tile is null and decoration tile is null
+                                    TiledMapTileLayer layer3 = (TiledMapTileLayer)map.getLayers().get("destructive");
+                                    TiledMapTileLayer layer4 = (TiledMapTileLayer)map.getLayers().get("decoration");
+                                    layer3.setCell((int)tile.x, (int)tile.y, null);
+                                    layer4.setCell((int)tile.x, (int)tile.y+1, null);
+                                    // if we hit water output dead
+                                    TiledMapTileLayer layer2 = (TiledMapTileLayer)map.getLayers().get("water");
+                                    if (layer2.getCell((int)tile.x, (int)tile.y) != null){
+                                        System.out.println("dead");
+                                    }
+                                } 
 				activeKoala.velocity.y = 0;
 				break;
 			}
@@ -284,6 +298,7 @@ public class SuperKoalio extends ApplicationAdapter {
 		// Apply damping to the velocity on the x-axis so we don't
 		// walk infinitely once a key was pressed
 		activeKoala.velocity.x *= Koala.DAMPING;
+                
 	}
         
         private void updateProjectile(float deltaTime) {
@@ -457,8 +472,13 @@ public class SuperKoalio extends ApplicationAdapter {
 
 	private void getTiles (int startX, int startY, int endX, int endY, Array<Rectangle> tiles) {
 		TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("main");
+                TiledMapTileLayer layer2 = (TiledMapTileLayer)map.getLayers().get("water");
+                TiledMapTileLayer layer3 = (TiledMapTileLayer)map.getLayers().get("destructive");
+                
 		rectPool.freeAll(tiles);
 		tiles.clear();
+                
+                // main
 		for (int y = startY; y <= endY; y++) {
 			for (int x = startX; x <= endX; x++) {
                             System.out.println(startX + " " + startY + " " + " " + endX + " " + endY + " " + x + " " + y);
@@ -470,7 +490,32 @@ public class SuperKoalio extends ApplicationAdapter {
 				}
 			}
 		}
+                // water
+                for (int y = startY; y <= endY; y++) {
+			for (int x = startX; x <= endX; x++) {
+                            System.out.println(startX + " " + startY + " " + " " + endX + " " + endY + " " + x + " " + y);
+				Cell cell = layer2.getCell(x, y);
+				if (cell != null) {
+					Rectangle rect = rectPool.obtain();
+					rect.set(x, y, 1, 1);
+					tiles.add(rect);
+				}
+			}
+		}
+                //destructive 
+                for (int y = startY; y <= endY; y++) {
+			for (int x = startX; x <= endX; x++) {
+                            System.out.println(startX + " " + startY + " " + " " + endX + " " + endY + " " + x + " " + y);
+				Cell cell = layer3.getCell(x, y);
+				if (cell != null) {
+					Rectangle rect = rectPool.obtain();
+					rect.set(x, y, 1, 1);
+					tiles.add(rect);
+				}
+			}
+		}
 	}
+        
 
 	private void renderKoalas (float deltaTime) {
 		// based on the koala state, get the animation frame
@@ -532,9 +577,33 @@ public class SuperKoalio extends ApplicationAdapter {
                 
 		debugRenderer.setColor(Color.YELLOW);
 		TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("main");
+                TiledMapTileLayer layer2 = (TiledMapTileLayer)map.getLayers().get("water");
+                TiledMapTileLayer layer3 = (TiledMapTileLayer)map.getLayers().get("destructive");
+                
+                // debug main
 		for (int y = 0; y <= layer.getHeight(); y++) {
 			for (int x = 0; x <= layer.getWidth(); x++) {
 				Cell cell = layer.getCell(x, y);
+				if (cell != null) {
+					if (camera.frustum.boundsInFrustum(x + 0.5f, y + 0.5f, 0, 1, 1, 0))
+						debugRenderer.rect(x, y, 1, 1);
+				}
+			}
+		}
+                // debug water
+                for (int y = 0; y <= layer2.getHeight(); y++) {
+			for (int x = 0; x <= layer2.getWidth(); x++) {
+				Cell cell = layer2.getCell(x, y);
+				if (cell != null) {
+					if (camera.frustum.boundsInFrustum(x + 0.5f, y + 0.5f, 0, 1, 1, 0))
+						debugRenderer.rect(x, y, 1, 1);
+				}
+			}
+		}
+                // debug destructive
+                for (int y = 0; y <= layer3.getHeight(); y++) {
+			for (int x = 0; x <= layer3.getWidth(); x++) {
+				Cell cell = layer3.getCell(x, y);
 				if (cell != null) {
 					if (camera.frustum.boundsInFrustum(x + 0.5f, y + 0.5f, 0, 1, 1, 0))
 						debugRenderer.rect(x, y, 1, 1);
